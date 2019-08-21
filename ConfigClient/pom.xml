@@ -16,6 +16,12 @@
         <artifactId>commons-io</artifactId>
         <version>2.6</version>
     </dependency>
+    <dependency>
+        <groupId>com.liuyan</groupId>
+        <artifactId>Common</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <scope>compile</scope>
+    </dependency>
 </dependencies>
 
 </project>

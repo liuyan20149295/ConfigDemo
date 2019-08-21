@@ -4,19 +4,23 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class ConfigDemoUtils {
     static Logger logger = LogManager.getLogger(ConfigDemoUtils.class);
+
     public static Object read2Object(byte[] values) throws IOException {
-        Object rerurnV=null;
+        Object rerurnV = null;
         ByteArrayInputStream bin = new ByteArrayInputStream(values);
         ObjectInputStream in_ = null;
         try {
             in_ = new ObjectInputStream(bin);
-            rerurnV=in_.readObject();
+            rerurnV = in_.readObject();
         } catch (IOException e) {
-            logger.error("read the values is error",e);
+            logger.error("read the values is error", e);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -25,8 +29,9 @@ public class ConfigDemoUtils {
         }
         return rerurnV;
     }
+
     public static byte[] read2Byte(Object values) throws IOException {
-        byte[] returnV=null;
+        byte[] returnV = null;
         ByteArrayOutputStream bou = new ByteArrayOutputStream();
         ObjectOutputStream out = null;
         try {
@@ -35,7 +40,7 @@ public class ConfigDemoUtils {
             out.flush();
             returnV = bou.toByteArray();
         } catch (IOException e) {
-            logger.error("read the values is error",e);
+            logger.error("read the values is error", e);
         } finally {
             out.close();
             bou.close();
@@ -43,7 +48,7 @@ public class ConfigDemoUtils {
         return returnV;
     }
 
-    public static LinkedHashMap<String,String> getMonitorValue(File file){
+    public static LinkedHashMap<String, String> getMonitorValue(File file) {
         LinkedHashMap<String, String> properties = new LinkedHashMap<>();
         InputStreamReader reader = null;
         try {
@@ -66,5 +71,24 @@ public class ConfigDemoUtils {
 
         return properties;
     }
+
+    public static void writeMonitorV2File(LinkedHashMap<String, String> values, String fileName) {
+        try {
+            String line = System.getProperty("line.separator");
+            StringBuffer str = new StringBuffer();
+            FileWriter fw = new FileWriter(fileName, true);
+            Set set = values.entrySet();
+            Iterator iter = set.iterator();
+            while (iter.hasNext()) {
+                Map.Entry entry = (Map.Entry) iter.next();
+                str.append(entry.getKey() + "=" + entry.getValue()).append(line);
+            }
+            fw.write(str.toString());
+            fw.close();
+        } catch (IOException e) {
+            logger.error("write the file is error", e);
+        }
+    }
+
 
 }
