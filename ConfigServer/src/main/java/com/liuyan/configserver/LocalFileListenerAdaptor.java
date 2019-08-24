@@ -1,4 +1,4 @@
-package com.lliuyan.configserver;
+package com.liuyan.configserver;
 
 import com.liuyan.utils.ConfigDemoUtils;
 import com.liuyan.zk.CuratorOperator;
@@ -6,7 +6,7 @@ import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 
 import java.io.*;
-import java.util.HashMap;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -28,28 +28,27 @@ public class LocalFileListenerAdaptor extends FileAlterationListenerAdaptor {
     @Override
     public void onFileCreate(File file) {
         logger.info("the files created");
-        HashMap<String, String> monitorV = new LinkedHashMap<>();
-        byte[] zkValue = null;
-        try {
-            zkValue = ConfigDemoUtils.read2Byte(monitorV);
-        } catch (IOException e) {
-            logger.info("read the zkValue is error", e);
-        }
-        curatorOperator.createNode(zkPath, zkValue);
+        LinkedHashMap<String, String> monitorV = new LinkedHashMap<>();
+        monitorV = ConfigDemoUtils.getMonitorValue(file);
+        String zkValue = null;
+        zkValue = ConfigDemoUtils.read2String(monitorV);
+        curatorOperator.createNode(zkPath, zkValue.getBytes(Charset.defaultCharset()));
 
     }
 
     @Override
     public void onFileChange(File file) {
         logger.info("the files changed");
-        HashMap<String, String> monitorV = new LinkedHashMap<>();
-        byte[] zkValue = null;
-        try {
-            zkValue = ConfigDemoUtils.read2Byte(monitorV);
-        } catch (IOException e) {
-            logger.info("read the zkValue is error", e);
-        }
-        curatorOperator.update(zkPath, zkValue);
+        LinkedHashMap<String, String> monitorV = new LinkedHashMap<>();
+        monitorV = ConfigDemoUtils.getMonitorValue(file);
+        String zkValue = null;
+        zkValue = ConfigDemoUtils.read2String(monitorV);
+        curatorOperator.update(zkPath, zkValue.getBytes(Charset.defaultCharset()));
+    }
+
+    @Override
+    public void onFileDelete(File file) {
+        logger.info("the files deleted");
     }
 
     @Override

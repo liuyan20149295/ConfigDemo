@@ -10,7 +10,7 @@ public class ConfigClient {
     static Logger logger = LogManager.getLogger(ConfigClient.class);
     public static void main(String[] args) throws InterruptedException {
         CountDownLatch countDownLatch = new CountDownLatch(1);
-        String monitorFile= "D:/test/jdbc.txt";
+        String monitorFile= "D:/client/jdbc.txt";
         String zkPath = "/config/jdbc";
         String fileName = "config.properties";
         ClassLoader classLoader = ConfigClient.class.getClassLoader();
@@ -19,7 +19,8 @@ public class ConfigClient {
               public void run() {
                   CuratorOperator curatorOperator=new CuratorOperator(classLoader,fileName);
                   try {
-                      curatorOperator.watcher(zkPath,monitorFile);
+                      //curatorOperator.watcherNodeChild(zkPath,monitorFile);
+                      curatorOperator.watcherNode(zkPath,monitorFile);
                   } catch (Exception e) {
                       logger.error("monitering the node is error", e);
                   }

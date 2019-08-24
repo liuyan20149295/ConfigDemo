@@ -5,9 +5,7 @@ import com.liuyan.utils.ConfigDemoUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.recipes.cache.PathChildrenCache;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheEvent;
-import org.apache.curator.framework.recipes.cache.PathChildrenCacheListener;
+import org.apache.curator.framework.recipes.cache.*;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,7 +26,13 @@ public class CuratorOperator {
     private String fileName = null;
     static CountDownLatch countDownLatch = new CountDownLatch(1);
 
-    public CuratorOperator() {
+    public CuratorOperator(ClassLoader classLoader, String fileName) {
+        this.classLoader = classLoader;
+        this.fileName = fileName;
+        initZk();
+    }
+
+    public void initZk() {
         Config config = new Config(classLoader, fileName);
         try {
             zkServerAddr = config.getProperties().getProperty("zkAddress");
@@ -43,16 +47,11 @@ public class CuratorOperator {
                 //namespace：
                 .build();
         client.start();
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            logger.error("initing zkclient is error", e);
-        }
-    }
-
-    public CuratorOperator(ClassLoader classLoader, String fileName) {
-        this.classLoader = classLoader;
-        this.fileName = fileName;
+//        try {
+//            countDownLatch.await();
+//        } catch (InterruptedException e) {
+//            logger.error("initing zkclient is error", e);
+//        }
     }
 
     public void createNode(String path, byte[] value) {
@@ -84,7 +83,7 @@ public class CuratorOperator {
         }
     }
 
-    public void watcher(String nodePath,String fileName) throws Exception {
+    public void watcherNodeChild(String nodePath, String fileName) throws Exception {
         PathChildrenCache cache = new PathChildrenCache(client, nodePath, true);
         cache.start();
 
@@ -95,23 +94,23 @@ public class CuratorOperator {
                 byte[] changeV;
                 switch (event.getType()) {
                     case CHILD_ADDED: {
-                        logger.info("the node:"+event.getData().getPath()+"is inited");
-                        changeV=event.getData().getData();
-                        LinkedHashMap<String,String> monitorV=(LinkedHashMap<String,String>) ConfigDemoUtils.read2Object(changeV);
-                        ConfigDemoUtils.writeMonitorV2File(monitorV,fileName);
+                        logger.info("the node:" + event.getData().getPath() + "is inited");
+                        changeV = event.getData().getData();
+                        LinkedHashMap<String, String> monitorV = (LinkedHashMap<String, String>) ConfigDemoUtils.read2Object(new String(changeV));
+                        ConfigDemoUtils.writeMonitorV2File(monitorV, fileName);
                         break;
                     }
 
                     case CHILD_UPDATED: {
-                        logger.info("the node:"+event.getData().getPath()+"is updated");
-                        changeV=event.getData().getData();
-                        LinkedHashMap<String,String> monitorV=(LinkedHashMap<String,String>) ConfigDemoUtils.read2Object(changeV);
-                        ConfigDemoUtils.writeMonitorV2File(monitorV,fileName);
+                        logger.info("the node:" + event.getData().getPath() + "is updated");
+                        changeV = event.getData().getData();
+                        LinkedHashMap<String, String> monitorV = (LinkedHashMap<String, String>) ConfigDemoUtils.read2Object(new String(changeV));
+                        ConfigDemoUtils.writeMonitorV2File(monitorV, fileName);
                         break;
                     }
 
                     case CHILD_REMOVED: {
-                        logger.info("the node:"+event.getData().getPath()+"is deleted");
+                        logger.info("the node:" + event.getData().getPath() + "is deleted");
                         break;
                     }
                 }
@@ -122,5 +121,33 @@ public class CuratorOperator {
         //注册监听
         cache.getListenable().addListener(plis);
 
+    }
+
+    public void watcherNode(String nodePath, String fileName) throws Exception {
+
+
+        final NodeCache cache = new NodeCache(client, nodePath, false);
+
+        cache.start(true);
+
+        cache.getListenable().addListener(new NodeCacheListener() {
+
+            @Override
+
+            public void nodeChanged() throws Exception {
+                byte[] changeV;
+                changeV = cache.getCurrentData().getData();
+                logger.info("Node data update, new data: " + new String(changeV));
+                LinkedHashMap<String, String> monitorV = ConfigDemoUtils.read2Object(new String(changeV));
+                StringBuffer stringBuffer = new StringBuffer();
+                for (String values : monitorV.values()) {
+                    stringBuffer.append(values);
+                    stringBuffer.append(",");
+                }
+                logger.info("Node data update, new data: " + stringBuffer.toString());
+                ConfigDemoUtils.writeMonitorV2File(monitorV, fileName);
+            }
+
+        });
     }
 }

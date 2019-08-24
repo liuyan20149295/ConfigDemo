@@ -1,4 +1,4 @@
-package com.lliuyan.configserver;
+package com.liuyan.configserver;
 
 public class ConfigServer {
     public static void main(String[] args) {

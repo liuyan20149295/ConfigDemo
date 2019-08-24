@@ -1,4 +1,4 @@
-package com.lliuyan.configserver;
+package com.liuyan.configserver;
 
 
 import org.apache.commons.io.filefilter.FileFilterUtils;

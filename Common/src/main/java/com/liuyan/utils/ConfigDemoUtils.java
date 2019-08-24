@@ -12,40 +12,30 @@ import java.util.Set;
 public class ConfigDemoUtils {
     static Logger logger = LogManager.getLogger(ConfigDemoUtils.class);
 
-    public static Object read2Object(byte[] values) throws IOException {
-        Object rerurnV = null;
-        ByteArrayInputStream bin = new ByteArrayInputStream(values);
-        ObjectInputStream in_ = null;
-        try {
-            in_ = new ObjectInputStream(bin);
-            rerurnV = in_.readObject();
-        } catch (IOException e) {
-            logger.error("read the values is error", e);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            in_.close();
-            bin.close();
+    public static LinkedHashMap<String, String> read2Object(String values) throws Exception {
+        String[] keySet ;
+        LinkedHashMap<String, String> map = new LinkedHashMap<>();
+        if (!values.isEmpty()) {
+            keySet = values.split(",");
+            for (String mapValue : keySet) {
+                String[] keyValue = mapValue.split("-");
+                map.put(keyValue[0], keyValue[1]);
+            }
+        } else {
+            throw new Exception("the values is empty");
         }
-        return rerurnV;
+        return map;
     }
 
-    public static byte[] read2Byte(Object values) throws IOException {
-        byte[] returnV = null;
-        ByteArrayOutputStream bou = new ByteArrayOutputStream();
-        ObjectOutputStream out = null;
-        try {
-            out = new ObjectOutputStream(bou);
-            out.writeObject(values);
-            out.flush();
-            returnV = bou.toByteArray();
-        } catch (IOException e) {
-            logger.error("read the values is error", e);
-        } finally {
-            out.close();
-            bou.close();
+    public static String read2String(LinkedHashMap<String, String> maps)  {
+        StringBuffer stringBuffer = new StringBuffer();
+        for (Map.Entry<String, String> values : maps.entrySet()) {
+            stringBuffer.append(values.getKey());
+            stringBuffer.append("-");
+            stringBuffer.append(values.getValue());
+            stringBuffer.append(",");
         }
-        return returnV;
+        return stringBuffer.toString();
     }
 
     public static LinkedHashMap<String, String> getMonitorValue(File file) {
@@ -57,9 +47,7 @@ public class ConfigDemoUtils {
             // 建立一个对象，它把文件内容转成计算机能读懂的语言
             BufferedReader br = new BufferedReader(reader);
             String line = "";
-            line = br.readLine();
-            while (line != null) {
-                line = br.readLine(); // 一次读入一行数据
+            while ((line = br.readLine()) != null ) {
                 String[] parts = line.split("=");
                 properties.put(parts[0], parts[1]);
             }
@@ -75,16 +63,19 @@ public class ConfigDemoUtils {
     public static void writeMonitorV2File(LinkedHashMap<String, String> values, String fileName) {
         try {
             String line = System.getProperty("line.separator");
-            StringBuffer str = new StringBuffer();
-            FileWriter fw = new FileWriter(fileName, true);
+            FileWriter fw = new FileWriter(fileName);
+            BufferedWriter  bw=new BufferedWriter(fw);
             Set set = values.entrySet();
             Iterator iter = set.iterator();
             while (iter.hasNext()) {
+                StringBuffer str = new StringBuffer();
                 Map.Entry entry = (Map.Entry) iter.next();
                 str.append(entry.getKey() + "=" + entry.getValue()).append(line);
+                bw.write(str.toString());
             }
-            fw.write(str.toString());
+            bw.close();
             fw.close();
+            logger.info("write the file success");
         } catch (IOException e) {
             logger.error("write the file is error", e);
         }
