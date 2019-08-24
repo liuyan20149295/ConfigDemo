@@ -1,11 +1,14 @@
-package com.liuyan.monitor;
+package com.liuyan.configserver;
 
 
 import org.apache.commons.io.filefilter.FileFilterUtils;
-        import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
-        import org.apache.commons.io.monitor.FileAlterationMonitor;
-        import org.apache.commons.io.monitor.FileAlterationObserver;
+import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 
+/***
+ * 自定义文件监视器，可用来实现热更配置文件/监听文件场景
+ */
 public class LocalFileAlterationMonitor {
 
     private String path;		// 文件夹目录
